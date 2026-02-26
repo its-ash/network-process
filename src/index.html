@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Network Process</title>
+  <script type="module" src="/main.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="background-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <main class="app-container">
+    <header class="header">
+      <div class="header-content">
+        <h1>Network Process</h1>
+        <p class="subtitle">Real-time Process & Port Monitor</p>
+      </div>
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-label">Processes</span>
+          <span id="process-count" class="stat-value">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Active Ports</span>
+          <span id="port-count" class="stat-value">0</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="controls row">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Search processes or ports..." />
+      </div>
+      <button id="refresh-btn" class="primary-btn">Refresh</button>
+    </div>
+
+    <div class="table-container glass">
+      <table id="process-table">
+        <thead>
+          <tr>
+            <th>PID</th>
+            <th>Name</th>
+            <th>CPU %</th>
+            <th>Memory</th>
+            <th>Ports</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="process-list">
+          <!-- Process items will be injected here -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <div id="toast" class="toast"></div>
+</body>
+
+</html>
