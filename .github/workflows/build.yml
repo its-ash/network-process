@@ -2,8 +2,8 @@ name: "publish"
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 jobs:
   publish:
@@ -39,8 +39,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
-          releaseName: "Network Process v__VERSION__"
-          releaseBody: "Automated release of Network Process."
-          releaseDraft: true
+          tagName: ${{ github.ref_name }} # uses the tag name that triggered the workflow
+          releaseName: "Network Process ${{ github.ref_name }}"
+          releaseBody: "Automated release of Network Process ${{ github.ref_name }}."
+          releaseDraft: false
           prerelease: false
