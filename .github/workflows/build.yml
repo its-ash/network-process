@@ -12,9 +12,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
+        platform: [macos-13, ubuntu-22.04, windows-latest]
 
     runs-on: ${{ matrix.platform }}
+    env:
+      OPENSSL_DIR: ${{ matrix.platform == 'macos-13' && '/usr/local/opt/openssl@3' || '' }}
     steps:
       - uses: actions/checkout@v4
 
