@@ -1,5 +1,7 @@
 # Network Process
 
+![Network Process Dashboard](screenshot.png)
+
 **Network Process** is an ultra-minimal, high-performance desktop application built with Rust and Tauri. It focuses exclusively on monitoring and managing system processes that have active network port listeners.
 
 ## Features
