@@ -15,10 +15,18 @@ jobs:
         platform: [macos-latest, ubuntu-22.04, windows-latest]
 
     runs-on: ${{ matrix.platform }}
-    env:
-      OPENSSL_DIR: ${{ contains(matrix.platform, 'macos') && (runner.arch == 'ARM64' && '/opt/homebrew/opt/openssl@3' || '/usr/local/opt/openssl@3') || '' }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: set openssl path
+        if: contains(matrix.platform, 'macos')
+        shell: bash
+        run: |
+          if [[ "${{ runner.arch }}" == "ARM64" ]]; then
+            echo "OPENSSL_DIR=/opt/homebrew/opt/openssl@3" >> $GITHUB_ENV
+          else
+            echo "OPENSSL_DIR=/usr/local/opt/openssl@3" >> $GITHUB_ENV
+          fi
 
       - name: setup node
         uses: actions/setup-node@v4
