@@ -10,7 +10,13 @@
 - **One-Click Termination**: Instantly kill any process directly from the dashboard.
 - **Ultra-Minimal UI**: A data-dense, full-screen design with zero margins and distraction-free aesthetics.
 - **Real-Time Updates**: Automatically refreshes the process list every 5 seconds.
-- **Cross-Platform Support**: Build and run on macOS, Linux, and Windows.
+## Downloads
+
+Get the latest version (v0.5) for your platform:
+
+- **macOS**: [Download .dmg](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_aarch64.dmg) | [Download .tar.gz](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_aarch64.app.tar.gz)
+- **Windows**: [Download .exe](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_x64-setup.exe) | [Download .msi](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_x64_en-US.msi)
+- **Linux**: [AppImage](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_amd64.AppImage) | [Debian (.deb)](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_amd64.deb) | [Red Hat (.rpm)](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process-0.1.0-1.x86_64.rpm)
 
 ## Tech Stack
 
