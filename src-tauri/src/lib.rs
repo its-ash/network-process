@@ -12,32 +12,65 @@ pub struct ProcessInfo {
     ports: Vec<u16>,
 }
 
-#[tauri::command]
-fn fetch_processes() -> Vec<ProcessInfo> {
-    let mut sys = System::new_all();
-    sys.refresh_all();
-
-    // Mapping PIDs to Ports using lsof on macOS
-    let output = Command::new("lsof")
-        .args(&["-i", "-P", "-n", "-sTCP:LISTEN"])
-        .output()
-        .expect("failed to execute lsof");
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
+fn get_port_mapping() -> std::collections::HashMap<u32, Vec<u16>> {
     let mut pid_to_ports: std::collections::HashMap<u32, Vec<u16>> = std::collections::HashMap::new();
 
-    for line in stdout.lines().skip(1) {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() > 8 {
-            if let Ok(pid) = parts[1].parse::<u32>() {
-                if let Some(addr) = parts[parts.len() - 2].split(':').last() {
-                    if let Ok(port) = addr.parse::<u16>() {
-                        pid_to_ports.entry(pid).or_default().push(port);
+    #[cfg(not(target_os = "windows"))]
+    {
+        let output = Command::new("lsof")
+            .args(&["-i", "-P", "-n", "-sTCP:LISTEN"])
+            .output();
+
+        if let Ok(out) = output {
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            for line in stdout.lines().skip(1) {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                if parts.len() > 8 {
+                    if let Ok(pid) = parts[1].parse::<u32>() {
+                        if let Some(addr) = parts[parts.len() - 2].split(':').last() {
+                            if let Ok(port) = addr.parse::<u16>() {
+                                pid_to_ports.entry(pid).or_default().push(port);
+                            }
+                        }
                     }
                 }
             }
         }
     }
+
+    #[cfg(target_os = "windows")]
+    {
+        let output = Command::new("netstat")
+            .arg("-ano")
+            .output();
+
+        if let Ok(out) = output {
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            for line in stdout.lines() {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                // TCP    0.0.0.0:135            0.0.0.0:0              LISTENING       1234
+                if parts.len() >= 5 && parts[3] == "LISTENING" {
+                    if let Ok(pid) = parts[parts.len() - 1].parse::<u32>() {
+                        if let Some(addr) = parts[1].split(':').last() {
+                            if let Ok(port) = addr.parse::<u16>() {
+                                pid_to_ports.entry(pid).or_default().push(port);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    pid_to_ports
+}
+
+#[tauri::command]
+fn fetch_processes() -> Vec<ProcessInfo> {
+    let mut sys = System::new_all();
+    sys.refresh_all();
+
+    let pid_to_ports = get_port_mapping();
 
     sys.processes()
         .iter()
@@ -64,8 +97,16 @@ fn fetch_processes() -> Vec<ProcessInfo> {
 
 #[tauri::command]
 fn kill_process(pid: u32) -> Result<(), String> {
+    #[cfg(not(target_os = "windows"))]
     let output = Command::new("kill")
         .arg("-9")
+        .arg(pid.to_string())
+        .output();
+
+    #[cfg(target_os = "windows")]
+    let output = Command::new("taskkill")
+        .arg("/F")
+        .arg("/PID")
         .arg(pid.to_string())
         .output();
 
