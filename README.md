@@ -29,8 +29,20 @@
    npm run tauri dev
    ```
 
-### CI/CD Pipeline
-Builds are automated via GitHub Actions for all major platforms. Check the `.github/workflows/build.yml` file for details on cross-platform compilation.
+## Troubleshooting (macOS)
+
+If you encounter issues running the application on macOS (e.g., "damaged and can't be opened"), it might be due to macOS quarantine.
+
+Try checking the attributes:
+```bash
+xattr -l /path/to/application.app
+```
+
+If `com.apple.quarantine` is listed, you can remove it with:
+```bash
+xattr -dr com.apple.quarantine /path/to/application.app
+```
+You might want to remove other attributes it returns as well.
 
 ## License
 MIT
