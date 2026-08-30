@@ -1,0 +1,9 @@
+[Desktop Entry]
+Categories=
+Comment=Process — Network Process Monitor
+Exec=process
+StartupWMClass=process
+Icon=process
+Name=Process
+Terminal=false
+Type=Application

@@ -1,0 +1,9 @@
+Package: process
+Version: 0.1.21
+Architecture: amd64
+Installed-Size: 14008
+Maintainer: you
+Priority: optional
+Depends: libwebkit2gtk-4.1-0, libgtk-3-0
+Description: Process — Network Process Monitor
+ (none)
