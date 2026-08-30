@@ -7,9 +7,15 @@ build:
 	npm run tauri build
 
 deploy: build
-	@VERSION=$$(jq -r '.version' src-tauri/tauri.conf.json); \
+	@CURRENT=$$(jq -r '.version' src-tauri/tauri.conf.json); \
+	MAJOR=$$(echo $$CURRENT | cut -d. -f1); \
+	MINOR=$$(echo $$CURRENT | cut -d. -f2); \
+	PATCH=$$(echo $$CURRENT | cut -d. -f3); \
+	NEXT_PATCH=$$((PATCH + 1)); \
+	VERSION="$$MAJOR.$$MINOR.$$NEXT_PATCH"; \
 	RELEASE_TAG="v$$VERSION"; \
-	echo "==> Deploying $$RELEASE_TAG"; \
+	echo "==> Bumping version $$CURRENT -> $$VERSION ($$RELEASE_TAG)"; \
+	jq --arg v "$$VERSION" '.version = $$v' src-tauri/tauri.conf.json > src-tauri/tauri.conf.json.tmp && mv src-tauri/tauri.conf.json.tmp src-tauri/tauri.conf.json; \
 	git checkout main; \
 	git add -A; \
 	git commit -m "$$(copilot -sp 'Analyze the staged git changes and generate a concise commit message. Output ONLY the commit message. Do not execute any commands. Do not include quotes, markdown, explanation, or bullet points.')"; \
