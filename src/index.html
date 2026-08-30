@@ -4,64 +4,96 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/svg+xml" href="/assets/squirtle.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Network Process</title>
+  <title>Monitor — Network Process Manager</title>
   <script type="module" src="/main.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 
 <body>
-  <div class="background-blobs">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-  </div>
-
   <main class="app-container">
+
+    <!-- Sticky header: logo | search | protocol toggle | refresh -->
     <header class="header">
-      <div class="header-content">
-        <h1>Network Process</h1>
-        <p class="subtitle">Real-time Process & Port Monitor</p>
+      <div class="brand">
+        <span class="logo">
+          <img src="/assets/squirtle.svg" alt="Monitor" width="20" height="20" />
+        </span>
+        <h1>Monitor</h1>
       </div>
-      <div class="stats">
-        <div class="stat-item">
-          <span class="stat-label">Processes</span>
-          <span id="process-count" class="stat-value">0</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Active Ports</span>
-          <span id="port-count" class="stat-value">0</span>
-        </div>
+
+      <div class="search-box">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 20L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="Filter by process or port…" />
       </div>
+
+      <div id="proto-toggle" class="proto-toggle">
+        <button class="proto-btn active" data-proto="ALL">All</button>
+        <button class="proto-btn" data-proto="TCP">TCP</button>
+        <button class="proto-btn" data-proto="UDP">UDP</button>
+      </div>
+
+      <button id="refresh-btn" class="refresh-btn" aria-label="Refresh">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+        <span>Refresh</span>
+      </button>
     </header>
 
-    <div class="controls row">
-      <div class="search-box">
-        <input type="text" id="search-input" placeholder="Search processes or ports..." />
-      </div>
-      <button id="refresh-btn" class="primary-btn">Refresh</button>
-    </div>
+    <div class="main-content">
 
-    <div class="table-container glass">
-      <table id="process-table">
-        <thead>
-          <tr>
-            <th>PID</th>
-            <th>Name</th>
-            <th>CPU %</th>
-            <th>Memory</th>
-            <th>Ports</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="process-list">
-          <!-- Process items will be injected here -->
-        </tbody>
-      </table>
+      <!-- Stats strip -->
+      <section class="stats-strip">
+        <div class="stat-card">
+          <span class="stat-label">Active Connections</span>
+          <span id="stat-processes" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Listening Ports</span>
+          <span id="stat-ports" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Top CPU</span>
+          <span id="stat-cpu" class="stat-value">0%</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total Memory</span>
+          <span id="stat-memory" class="stat-value">0 MB</span>
+        </div>
+      </section>
+
+      <!-- Table card -->
+      <section class="table-card glass">
+        <div class="table-head">
+          <h2>Processes</h2>
+          <span id="row-count" class="row-count">0 results</span>
+        </div>
+
+        <div class="table-scroll">
+          <table id="process-table">
+            <thead>
+              <tr>
+                <th class="col-kill">Kill</th>
+                <th class="col-name">Process</th>
+                <th class="col-ports">Ports</th>
+              </tr>
+            </thead>
+            <tbody id="process-list"></tbody>
+          </table>
+          <div id="no-results" class="no-results hidden">
+            <p>No processes match this filter.</p>
+          </div>
+        </div>
+      </section>
+
     </div>
   </main>
+
   <div id="toast" class="toast"></div>
 </body>
 

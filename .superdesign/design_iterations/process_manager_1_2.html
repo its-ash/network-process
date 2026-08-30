@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Network Process Manager — Compact</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  html { -webkit-font-smoothing: antialiased; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif; }
+  .scrollbar-thin::-webkit-scrollbar { height: 8px; width: 8px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 8px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .row-hidden { display: none; }
+</style>
+</head>
+<body class="bg-neutral-100 text-black min-h-screen">
+
+  <!-- Sticky Toolbar -->
+  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-neutral-200">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+
+        <!-- Logo / Title -->
+        <div class="flex items-center gap-2.5">
+          <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="5" cy="5" r="2.5" stroke="white" stroke-width="1.6"/>
+              <circle cx="19" cy="5" r="2.5" stroke="white" stroke-width="1.6"/>
+              <circle cx="12" cy="19" r="2.5" stroke="white" stroke-width="1.6"/>
+              <path d="M7.2 6.2L10.5 17.2M16.8 6.2L13.5 17.2M7.5 5H16.5" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div>
+            <h1 class="text-sm font-semibold leading-4 text-black">NetWatch</h1>
+            <p class="text-[11px] text-black/50 leading-4">Process &amp; Connection Monitor · Compact</p>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+              <path d="M20 20L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input
+              id="portFilter"
+              type="text"
+              inputmode="numeric"
+              placeholder="Filter by port…"
+              class="w-full sm:w-48 pl-9 pr-4 py-1.5 rounded-lg border border-neutral-300 bg-neutral-50 text-sm text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black hover:border-neutral-400 transition-colors"
+            />
+          </div>
+
+          <div id="protoToggle" class="inline-flex items-center rounded-lg border border-neutral-300 bg-neutral-50 p-1 gap-1">
+            <button data-proto="ALL" class="proto-btn px-2.5 py-1 text-xs font-medium rounded-md bg-black text-white transition-colors">All</button>
+            <button data-proto="TCP" class="proto-btn px-2.5 py-1 text-xs font-medium rounded-md text-black hover:bg-neutral-200 transition-colors">TCP</button>
+            <button data-proto="UDP" class="proto-btn px-2.5 py-1 text-xs font-medium rounded-md text-black hover:bg-neutral-200 transition-colors">UDP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col gap-4">
+
+    <!-- Stats strip (compact single-row) -->
+    <section class="rounded-xl border border-neutral-200 bg-white shadow-sm grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 divide-x-0 sm:divide-x divide-neutral-200 overflow-hidden">
+      <div class="px-4 py-2.5 flex items-center justify-between sm:flex-col sm:items-start sm:gap-0.5">
+        <span class="text-[11px] text-black/50">Active Connections</span>
+        <span class="text-lg font-semibold text-black" id="statActive">24</span>
+      </div>
+      <div class="px-4 py-2.5 flex items-center justify-between sm:flex-col sm:items-start sm:gap-0.5">
+        <span class="text-[11px] text-black/50">Listening Ports</span>
+        <span class="text-lg font-semibold text-black">3</span>
+      </div>
+      <div class="px-4 py-2.5 flex items-center justify-between sm:flex-col sm:items-start sm:gap-0.5">
+        <span class="text-[11px] text-black/50">TCP / UDP</span>
+        <span class="text-lg font-semibold text-black">8 / 2</span>
+      </div>
+      <div class="px-4 py-2.5 flex items-center justify-between sm:flex-col sm:items-start sm:gap-0.5">
+        <span class="text-[11px] text-black/50">Unique Processes</span>
+        <span class="text-lg font-semibold text-black">10</span>
+      </div>
+    </section>
+
+    <!-- List Card -->
+    <section class="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
+      <div class="px-3 sm:px-4 py-2.5 border-b border-neutral-200 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-black">Processes</h2>
+        <span class="text-xs text-black/50" id="rowCount">10 results</span>
+      </div>
+
+      <div id="listBody" class="divide-y divide-neutral-100 scrollbar-thin">
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="3000" data-proto="TCP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-neutral-900 flex items-center justify-center text-white text-[9px] font-semibold">nd</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">node</p>
+            <p class="text-[11px] text-black/50 truncate">PID 4821<span class="sm:hidden"> · 3000 · TCP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">3000</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-900 text-white shrink-0">TCP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">127.0.0.1:3000</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-200 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black"></span>LISTEN</span>
+        </div>
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="5432" data-proto="TCP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-blue-900 flex items-center justify-center text-white text-[9px] font-semibold">pg</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">postgres</p>
+            <p class="text-[11px] text-black/50 truncate">PID 1024<span class="sm:hidden"> · 5432 · TCP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">5432</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-900 text-white shrink-0">TCP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">0.0.0.0:5432</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-200 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black"></span>LISTEN</span>
+        </div>
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="6379" data-proto="TCP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-red-900 flex items-center justify-center text-white text-[9px] font-semibold">rd</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">redis-server</p>
+            <p class="text-[11px] text-black/50 truncate">PID 2317<span class="sm:hidden"> · 6379 · TCP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">6379</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-900 text-white shrink-0">TCP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">127.0.0.1:6379</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-200 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black"></span>LISTEN</span>
+        </div>
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="443" data-proto="TCP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-yellow-600 flex items-center justify-center text-white text-[9px] font-semibold">ch</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">chrome</p>
+            <p class="text-[11px] text-black/50 truncate">PID 58213<span class="sm:hidden"> · 443 · TCP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">443</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-900 text-white shrink-0">TCP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">192.168.1.14:52210</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-300 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black/70"></span>ESTABLISHED</span>
+        </div>
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="8080" data-proto="TCP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-sky-700 flex items-center justify-center text-white text-[9px] font-semibold">dk</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">Docker</p>
+            <p class="text-[11px] text-black/50 truncate">PID 1893<span class="sm:hidden"> · 8080 · TCP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">8080</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-900 text-white shrink-0">TCP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">0.0.0.0:8080</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-200 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black"></span>LISTEN</span>
+        </div>
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="80" data-proto="TCP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-green-800 flex items-center justify-center text-white text-[9px] font-semibold">ng</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">nginx</p>
+            <p class="text-[11px] text-black/50 truncate">PID 733<span class="sm:hidden"> · 80 · TCP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">80</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-900 text-white shrink-0">TCP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">0.0.0.0:80</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-200 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black"></span>LISTEN</span>
+        </div>
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="4070" data-proto="UDP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-green-600 flex items-center justify-center text-white text-[9px] font-semibold">sp</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">Spotify</p>
+            <p class="text-[11px] text-black/50 truncate">PID 9931<span class="sm:hidden"> · 4070 · UDP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">4070</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-400 text-white shrink-0">UDP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">192.168.1.14:4070</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-300 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black/70"></span>ESTABLISHED</span>
+        </div>
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="22" data-proto="TCP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-neutral-700 flex items-center justify-center text-white text-[9px] font-semibold">sh</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">sshd</p>
+            <p class="text-[11px] text-black/50 truncate">PID 512<span class="sm:hidden"> · 22 · TCP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">22</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-900 text-white shrink-0">TCP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">0.0.0.0:22</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-200 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black"></span>LISTEN</span>
+        </div>
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="5000" data-proto="TCP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-indigo-800 flex items-center justify-center text-white text-[9px] font-semibold">py</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">python3</p>
+            <p class="text-[11px] text-black/50 truncate">PID 73204<span class="sm:hidden"> · 5000 · TCP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">5000</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-900 text-white shrink-0">TCP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">127.0.0.1:5000</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-200 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black"></span>LISTEN</span>
+        </div>
+
+        <div class="proc-row flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 transition-colors" data-port="27017" data-proto="TCP">
+          <button class="kill-btn shrink-0 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:bg-red-700 active:bg-red-800 transition-colors">Kill</button>
+          <span class="shrink-0 w-6 h-6 rounded-md bg-emerald-800 flex items-center justify-center text-white text-[9px] font-semibold">mg</span>
+          <div class="min-w-0 flex-1 sm:flex-none sm:w-28">
+            <p class="font-medium text-black text-sm truncate">mongod</p>
+            <p class="text-[11px] text-black/50 truncate">PID 99871<span class="sm:hidden"> · 27017 · TCP</span></p>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 flex-1 min-w-0">
+            <span class="font-mono text-xs text-black w-12 shrink-0">27017</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-900 text-white shrink-0">TCP</span>
+            <span class="hidden md:inline font-mono text-xs text-black/60 truncate">127.0.0.1:27017</span>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-200 text-black"><span class="w-1.5 h-1.5 rounded-full bg-black"></span>LISTEN</span>
+        </div>
+
+      </div>
+
+      <div id="noResults" class="hidden px-6 py-10 text-center">
+        <p class="text-sm text-black/50">No processes match this filter.</p>
+      </div>
+    </section>
+
+    <p class="text-center text-xs text-black/40 pb-4">NetWatch — local network activity, updated in real time.</p>
+  </main>
+
+  <script>
+    (function () {
+      var portInput = document.getElementById('portFilter');
+      var protoButtons = document.querySelectorAll('.proto-btn');
+      var rows = document.querySelectorAll('.proc-row');
+      var rowCount = document.getElementById('rowCount');
+      var noResults = document.getElementById('noResults');
+      var activeProto = 'ALL';
+
+      function applyFilters() {
+        var portQuery = portInput.value.trim();
+        var visible = 0;
+        rows.forEach(function (row) {
+          var matchesPort = portQuery === '' || row.dataset.port.indexOf(portQuery) !== -1;
+          var matchesProto = activeProto === 'ALL' || row.dataset.proto === activeProto;
+          var show = matchesPort && matchesProto;
+          row.classList.toggle('row-hidden', !show);
+          if (show) visible++;
+        });
+        rowCount.textContent = visible + ' result' + (visible === 1 ? '' : 's');
+        noResults.classList.toggle('hidden', visible !== 0);
+      }
+
+      portInput.addEventListener('input', applyFilters);
+
+      protoButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          activeProto = btn.dataset.proto;
+          protoButtons.forEach(function (b) {
+            b.classList.remove('bg-black', 'text-white');
+            b.classList.add('text-black');
+          });
+          btn.classList.add('bg-black', 'text-white');
+          btn.classList.remove('text-black');
+          applyFilters();
+        });
+      });
+
+      document.querySelectorAll('.proc-row .kill-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var row = btn.closest('.proc-row');
+          row.style.opacity = '0.4';
+          btn.disabled = true;
+          btn.textContent = 'Killed';
+          btn.classList.remove('hover:bg-red-700', 'active:bg-red-800');
+          btn.classList.add('bg-neutral-400', 'cursor-not-allowed');
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>
