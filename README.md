@@ -1,41 +1,56 @@
-# Network Process
+# Process
 
-![Network Process Dashboard](screenshot.png)
+![Process Dashboard](screenshot.png)
 
-**Network Process** is an ultra-minimal, high-performance desktop application built with Rust and Tauri. It focuses exclusively on monitoring and managing system processes that have active network port listeners.
+**Process** is a real-time desktop application built with Rust and Tauri v2 for monitoring and managing system processes that have active network port listeners.
 
 ## Features
 
 - **Port-Only Filtering**: Automatically filters out system noise to show only processes with active network connections (ideal for tracking local servers like Node.js, Python, or Nginx).
 - **One-Click Termination**: Instantly kill any process directly from the dashboard.
-- **Ultra-Minimal UI**: A data-dense, full-screen design with zero margins and distraction-free aesthetics.
+- **Clean Light UI**: A data-dense, distraction-free design with process avatars, CPU bars, port badges, and state indicators.
+- **Protocol Toggle**: Filter processes by All / TCP / UDP directly from the toolbar.
+- **Real-Time Stats**: Live stats strip showing active connections, listening ports, top CPU, and total memory.
 - **Real-Time Updates**: Automatically refreshes the process list every 5 seconds.
+
 ## Downloads
 
-Get the latest version (v0.5) for your platform:
-
-- **macOS**: [Download .dmg](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_aarch64.dmg) | [Download .tar.gz](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_aarch64.app.tar.gz)
-- **Windows**: [Download .exe](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_x64-setup.exe) | [Download .msi](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_x64_en-US.msi)
-- **Linux**: [AppImage](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_amd64.AppImage) | [Debian (.deb)](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process_0.1.0_amd64.deb) | [Red Hat (.rpm)](https://github.com/its-ash/network-process/releases/download/v-0.5/Network.Process-0.1.0-1.x86_64.rpm)
+Get the latest version for your platform from the [GitHub Releases](https://github.com/its-ash/network-process/releases) page.
 
 ## Tech Stack
 
 - **Backend**: [Rust](https://www.rust-lang.org/) & [Tauri v2](https://tauri.app/)
-- **Frontend**: Vanilla JavaScript & CSS (Glassmorphism design system)
-- **Monitoring**: `sysinfo` (Rust) & `lsof` (macOS/Unix)
+- **Frontend**: Vanilla JavaScript & CSS (light, card-based design system)
+- **Monitoring**: `sysinfo` (Rust) & `lsof` (macOS/Unix) / `netstat` (Windows)
+- **Fonts**: Inter & JetBrains Mono
 
 ## Getting Started
 
+### Prerequisites
+- [Rust](https://www.rust-lang.org/tools/install)
+- [Node.js](https://nodejs.org/) (LTS)
+- [Tauri CLI](https://tauri.app/v2/guides/getting-started/prerequisites)
+
 ### Development
-1. Install [Rust](https://www.rust-lang.org/tools/install) and [Tauri CLI](https://tauri.app/v1/guides/getting-started/prerequisites).
-2. Clone the repository and install dependencies:
+1. Clone the repository and install dependencies:
    ```bash
    npm install
    ```
-3. Run the application in development mode:
+2. Run the application in development mode:
    ```bash
-   npm run tauri dev
+   make run
    ```
+
+### Build
+```bash
+make build
+```
+
+### Deploy
+Builds, commits, pushes to `main`, and creates a GitHub release with bundled artifacts:
+```bash
+make deploy
+```
 
 ## Troubleshooting (macOS)
 
